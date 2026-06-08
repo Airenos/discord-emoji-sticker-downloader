@@ -1,10 +1,11 @@
 // ==UserScript==
 // @name         Discord Emoji & Sticker Downloader
 // @namespace    https://github.com/
-// @version      1.0.5
+// @version      1.0.6
 // @description  Batch download custom emojis and stickers from Discord servers.
 // @author       Airenos (https://github.com/Airenos)
 // @match        https://discord.com/*
+// @icon         https://raw.githubusercontent.com/Airenos/open_discord_downloader/main/icons/logo128.png
 // @require      https://cdnjs.cloudflare.com/ajax/libs/jszip/2.6.1/jszip.min.js
 // @grant        GM_xmlhttpRequest
 // @connect      discord.com
