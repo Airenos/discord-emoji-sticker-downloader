@@ -45,6 +45,22 @@ This is the easiest way to use the tool, without dealing with Developer Mode war
 4. Click **Load unpacked** and select the extracted folder.
 5. Click the extension icon in your browser toolbar while on the Discord website.
 
+### 🛡️ Privacy & Security
+This tool runs locally in your browser. To request emoji and sticker metadata, it uses your current Discord Web session locally when calling Discord API endpoints.
+This project code does not upload your Discord session token to the developer, analytics services, or third-party servers.
+This is an unofficial tool and may not match Discord's intended API usage. Use it at your own risk.
+
+### ⚠️ Platform Notice
+Discord states that automating normal user accounts outside the OAuth2/bot API is forbidden and may result in account termination. This project is provided for local personal export use only.
+
+### ⚖️ Disclaimer
+- This tool is intended for **personal backup/export use only**.
+- Please respect Discord's [Terms of Service](https://discord.com/terms).
+- Do not use exported assets for unauthorized commercial purposes.
+
+### 📄 License
+This project is licensed under the [MIT License](LICENSE).
+
 ---
 
 ## 🇨🇳 中文
@@ -71,28 +87,18 @@ This is the easiest way to use the tool, without dealing with Developer Mode war
 4. 点击 **加载解压缩的扩展**，选择刚刚解压的目录。
 5. 在 Discord 网页中点击右上角的扩展图标即可使用。
 
----
-
-## 🛡️ Privacy & Security / 隐私与安全说明
-
-### English
-This tool runs locally in your browser. To request emoji and sticker metadata, it uses your current Discord Web session locally when calling Discord API endpoints.
-This project code does not upload your Discord session token to the developer, analytics services, or third-party servers.
-This is an unofficial tool and may not match Discord's intended API usage. Use it at your own risk.
-
-### 中文
+### 🛡️ 隐私与安全说明
 本工具在浏览器本地运行。为了获取服务器 Emoji / Sticker 元数据，脚本会在本地使用当前 Discord Web 会话认证信息请求 Discord API。
 本项目代码不会将 Discord 会话认证信息上传给作者服务器、统计服务或第三方服务器。
 本工具不是 Discord 官方工具，可能不符合 Discord 预期的 API 使用方式。请自行承担账号与平台规则风险。
 
-## ⚠️ Platform Notice / 平台风险警告
-Discord states that automating normal user accounts outside the OAuth2/bot API is forbidden and may result in account termination. This project is provided for local personal export use only.
+### ⚠️ 平台风险警告
 Discord 官方支持页说明，普通用户账号自动化属于 OAuth2/bot API 之外的禁止行为，可能导致账号终止。请自行评估使用风险。
 
-## ⚖️ Disclaimer / 免责声明
-- This tool is intended for **personal backup/export use only**. (本工具仅供个人学习和备份导出使用)
-- Please respect Discord's [Terms of Service](https://discord.com/terms). (请严格遵守 Discord 的服务条款)
-- Do not use exported assets for unauthorized commercial purposes. (请勿将导出的资产用于未经授权的商业用途)
+### ⚖️ 免责声明
+- 本工具仅供个人学习和备份导出使用。
+- 请严格遵守 Discord 的服务条款。
+- 请勿将导出的资产用于未经授权的商业用途。
 
-## 📄 License / 开源协议
-This project is licensed under the [MIT License](LICENSE).
+### 📄 开源协议
+本项目基于 [MIT License](LICENSE) 开源。
