@@ -1,3 +1,6 @@
+// Greasy Fork release build.
+// Keep this file in sync with discord-downloader.user.js,
+// but do not include @updateURL or @downloadURL here.
 // ==UserScript==
 // @name         Discord Emoji & Sticker Downloader
 // @name:zh-CN   Discord 表情与贴纸下载器
@@ -14,8 +17,6 @@
 // @connect      discord.com
 // @connect      cdn.discordapp.com
 // @connect      media.discordapp.net
-// @updateURL    https://raw.githubusercontent.com/Airenos/discord-emoji-sticker-downloader/main/discord-downloader.user.js
-// @downloadURL  https://raw.githubusercontent.com/Airenos/discord-emoji-sticker-downloader/main/discord-downloader.user.js
 // @homepageURL  https://github.com/Airenos/discord-emoji-sticker-downloader
 // @supportURL   https://github.com/Airenos/discord-emoji-sticker-downloader/issues
 // ==/UserScript==
