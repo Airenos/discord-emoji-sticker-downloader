@@ -15,6 +15,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/manifest-v3-blue" alt="Manifest V3">
   <img src="https://img.shields.io/badge/tampermonkey-supported-success" alt="Tampermonkey">
+  <a href="https://greasyfork.org/zh-CN/scripts/582194-discord-emoji-sticker-downloader"><img src="https://img.shields.io/badge/GreasyFork-Available-red" alt="GreasyFork"></a>
   <img src="https://img.shields.io/badge/license-MIT-green" alt="MIT License">
 </p>
 
@@ -26,14 +27,15 @@
 - 🎨 **Batch Export Emojis** — Export custom emojis from servers you have access to.
 - 🎟️ **Batch Export Stickers** — Export stickers from your accessible servers.
 - ✅ **Custom Selection** — Select exactly what you want to export.
-- 📦 **ZIP Export** — Automatically packages your exports into a structured `.zip` file.
+- 🖼️ **Rich UI** — Skeuomorphic dropdown select UI featuring Discord server icons.
+- 📦 **ZIP Export** — Automatically packages your exports into a structured `.zip` file with loading spinners.
 - 🔓 **Source-Available** — No project-side artificial paywalls.
 - 🛠️ **Two Versions Available** — Choose between a Browser Extension or a Userscript.
 
 ### 📥 Option 1: Userscript (Tampermonkey/Greasemonkey) - *Recommended!*
 This is the easiest way to use the tool, without dealing with Developer Mode warnings.
 1. Install a Userscript manager like [Tampermonkey](https://www.tampermonkey.net/).
-2. Click here to install the script: [Install `discord-downloader.user.js`](discord-downloader.user.js) *(If hosting on GreasyFork, link here)*.
+2. Click here to install the script: [Install via GreasyFork](https://greasyfork.org/en/scripts/582194-discord-emoji-sticker-downloader) (or directly from [GitHub](discord-downloader.user.js)).
 3. Open [Discord Web](https://discord.com), and you will see a floating **"📥 Emojis"** button in the bottom right corner. Click it to start downloading!
 
 ### 🧩 Option 2: Browser Extension (Developer Mode)
@@ -51,14 +53,15 @@ This is the easiest way to use the tool, without dealing with Developer Mode war
 - 🎨 **批量导出表情** — 批量导出当前账号可访问服务器中的自定义表情。
 - 🎟️ **批量导出贴纸** — 批量导出当前账号可访问服务器中的贴纸。
 - ✅ **自定义选择** — 支持全选、反选或精准挑选你要导出的项目。
-- 📦 **ZIP 打包导出** — 自动整理并打包成 `.zip` 文件下载到本地。
+- 🖼️ **原生拟物 UI** — 深度定制的下拉框组件，完美支持显示服务器高清图标与动态加载指示器。
+- 📦 **ZIP 打包导出** — 自动整理并打包成 `.zip` 文件极速下载到本地，全程无阻塞。
 - 🔓 **开源透明** — 无内置项目方强制收费墙。
 - 🛠️ **双版本支持** — 提供浏览器扩展和油猴脚本两种选择。
 
 ### 📥 方式一：油猴脚本 (Tampermonkey) - *强烈推荐！*
 这是最方便的使用方式，无需忍受浏览器开发者模式的弹窗警告。
 1. 安装 [Tampermonkey (油猴)](https://www.tampermonkey.net/) 扩展。
-2. 点击此处安装脚本：[安装 `discord-downloader.user.js`](discord-downloader.user.js) *(如果在 GreasyFork 上架，请替换链接)*。
+2. 点击此处一键安装脚本：[在 GreasyFork 上安装](https://greasyfork.org/zh-CN/scripts/582194-discord-emoji-sticker-downloader)（或者从 [GitHub 原始链接](discord-downloader.user.js) 安装）。
 3. 打开 [Discord 网页版](https://discord.com)，你会看到右下角出现一个悬浮的 **"📥 Emojis"** 按钮，点击即可开始下载！
 
 ### 🧩 方式二：浏览器扩展 (开发者模式)
