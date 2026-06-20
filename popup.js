@@ -179,7 +179,6 @@ async function downloadSelected() {
             try {
                 let url = api.getEmojiUrl(emoji.id, emoji.animated);
                 let res = await fetch(url);
-                if (!res.ok) res = await fetch(`https://corsproxy.io/?${url}`); // Fallback
                 const blob = await res.blob();
                 emojiFolder.file(`${emoji.name}.${emoji.animated ? 'gif' : 'png'}`, blob);
             } catch (e) { console.error(`Failed emoji: ${emoji.name}`, e); }
@@ -190,14 +189,14 @@ async function downloadSelected() {
             try {
                 let url = api.getStickerUrl(sticker.id);
                 let res = await fetch(url);
-                if (!res.ok) res = await fetch(`https://corsproxy.io/?${url}`); // Fallback
                 const blob = await res.blob();
                 stickerFolder.file(`${sticker.name}.png`, blob);
             } catch (e) { console.error(`Failed sticker: ${sticker.name}`, e); }
         }
 
         showLoading("Creating ZIP file...");
-        const content = await zip.generateAsync({ type: "blob" });
+        const uint8 = await zip.generateAsync({ type: "uint8array", compression: "STORE" });
+        const content = new Blob([uint8], { type: "application/zip" });
         
         const serverName = UI.serverSelect.options[UI.serverSelect.selectedIndex].text.replace(/[^a-zA-Z0-9]/g, '_');
         const url = URL.createObjectURL(content);

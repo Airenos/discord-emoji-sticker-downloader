@@ -5,7 +5,7 @@
 // @name         Discord Emoji & Sticker Downloader
 // @name:zh-CN   Discord 表情与贴纸下载器
 // @namespace    https://github.com/
-// @version      1.0.9
+// @version      1.1.0
 // @description  Batch export custom Discord emojis and stickers from servers you can access. Uses your local Discord Web session to request metadata from Discord API.
 // @description:zh-CN  批量导出当前账号可访问的 Discord 服务器自定义表情和贴纸；脚本会在本地使用当前 Discord Web 会话请求 Discord API。
 // @author       Airenos (https://github.com/Airenos)
@@ -97,7 +97,33 @@
     }
 
     const getEmojiUrl = (id, animated) => `https://cdn.discordapp.com/emojis/${id}.${animated ? "gif" : "png"}?v=1`;
-    const getStickerUrl = (id) => `https://media.discordapp.net/stickers/${id}.png?size=1024`;
+    const getStickerPreviewUrl = (id) => `https://media.discordapp.net/stickers/${id}.png?size=1024`;
+    
+    function getStickerAsset(sticker) {
+        const id = sticker.id;
+        const formatType = Number(sticker.format_type);
+        switch (formatType) {
+            case 1: return { url: `https://media.discordapp.net/stickers/${id}.png?size=1024`, ext: "png" };
+            case 2: return { url: `https://media.discordapp.net/stickers/${id}.png?size=1024`, ext: "png" }; // APNG
+            case 3: return { url: `https://discord.com/stickers/${id}.json`, ext: "json" }; // LOTTIE
+            case 4: return { url: `https://media.discordapp.net/stickers/${id}.gif?size=1024`, ext: "gif" };
+            default: return { url: `https://media.discordapp.net/stickers/${id}.png?size=1024`, ext: "png" };
+        }
+    }
+
+    async function mapLimit(items, limit, worker) {
+        const results = [];
+        let index = 0;
+        async function run() {
+            while (index < items.length) {
+                const currentIndex = index++;
+                results[currentIndex] = await worker(items[currentIndex], currentIndex);
+            }
+        }
+        const runners = Array.from({ length: Math.min(limit, items.length) }, () => run());
+        await Promise.all(runners);
+        return results;
+    }
 
     function safeFilename(name, fallback = "Discord_Server") {
         return String(name || fallback)
@@ -179,6 +205,7 @@
             ::-webkit-scrollbar { width: 8px; }
             ::-webkit-scrollbar-track { background: var(--bg-tert); }
             ::-webkit-scrollbar-thumb { background: #1A1B1E; border-radius: 4px;}
+            @keyframes spin { 100% { transform: rotate(360deg); } }
         `;
         shadow.appendChild(style);
 
@@ -193,8 +220,14 @@
                         <button class="close-btn">&times;</button>
                     </div>
                     <div class="modal-body">
-                        <div>
-                            <select id="server-select"><option>Loading servers...</option></select>
+                        <div class="custom-select-container" style="position:relative; user-select:none;">
+                            <div id="custom-select-trigger" style="background:var(--bg-tert); border:1px solid var(--bg-tert); color:var(--text); padding:10px; border-radius:4px; display:flex; align-items:center; gap:8px; cursor:pointer;">
+                                <div id="custom-select-text" style="flex:1; display:flex; align-items:center; gap:8px; overflow:hidden;">
+                                    <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1;">Loading servers...</span>
+                                </div>
+                                <span style="font-size:12px;">▼</span>
+                            </div>
+                            <div id="custom-select-options" style="position:fixed; max-height:250px; overflow-y:auto; background:var(--bg-sec); border:1px solid #1E1F22; border-radius:4px; display:none; z-index:999999; box-shadow:0 8px 16px rgba(0,0,0,0.5);"></div>
                         </div>
                         <div id="content-area" style="display: none;">
                             <div class="grid-title">
@@ -222,7 +255,10 @@
         const btnOpen = shadow.querySelector('.floating-btn');
         const overlay = shadow.querySelector('.modal-overlay');
         const btnClose = shadow.querySelector('.close-btn');
-        const select = shadow.querySelector('#server-select');
+        const customTrigger = shadow.querySelector('#custom-select-trigger');
+        const customText = shadow.querySelector('#custom-select-text');
+        const customOptions = shadow.querySelector('#custom-select-options');
+        let currentServerName = "Discord_Server";
         const contentArea = shadow.querySelector('#content-area');
         const emGrid = shadow.querySelector('#emoji-grid');
         const stGrid = shadow.querySelector('#sticker-grid');
@@ -266,39 +302,84 @@
         });
 
         // Logic
+        let hasLoadedServers = false;
         btnOpen.onclick = async (e) => {
             if (isDragging) {
                 e.preventDefault();
                 return;
             }
             overlay.classList.add('open');
-            if (select.options.length <= 1) {
-                select.innerHTML = '<option>Step 1: Extracting Token...</option>';
-                // Give the browser a tiny moment to render the text
+            if (!hasLoadedServers) {
+                customText.innerHTML = '<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;">Step 1: Extracting Token...</span>';
                 await new Promise(resolve => setTimeout(resolve, 50));
 
                 userToken = extractToken();
                 if (!userToken) {
-                    select.innerHTML = '<option>Error: Token not found! Try refreshing.</option>';
+                    customText.innerHTML = '<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;">Error: Token not found! Try refreshing.</span>';
                     return;
                 }
                 
-                select.innerHTML = '<option>Step 2: Fetching Servers...</option>';
+                customText.innerHTML = '<svg style="width:20px;height:20px;animation:spin 1s linear infinite;color:var(--blurple);flex-shrink:0;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="31.4 31.4" stroke-linecap="round"></circle></svg><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;">Step 2: Fetching Servers...</span>';
                 try {
                     const guilds = await fetchApi("/users/@me/guilds");
                     guilds.sort((a, b) => a.name.localeCompare(b.name));
-                    select.innerHTML = '<option value="">-- Choose a Server --</option>';
+                    
+                    customText.innerHTML = '<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;">-- Choose a Server --</span>';
+                    customOptions.innerHTML = '';
+                    
+                    const createOpt = (id, name, icon) => {
+                        const opt = document.createElement('div');
+                        opt.style.cssText = "display:flex; align-items:center; gap:8px; padding:8px; cursor:pointer; color:var(--text); transition:background 0.2s;";
+                        opt.onmouseover = () => opt.style.background = 'var(--blurple)';
+                        opt.onmouseout = () => opt.style.background = 'transparent';
+                        
+                        const iconHtml = icon ? `<img src="https://cdn.discordapp.com/icons/${id}/${icon}.png?size=64" style="width:24px;height:24px;border-radius:50%;object-fit:cover;flex-shrink:0;">` : `<div style="width:24px;height:24px;border-radius:50%;background:var(--bg-tert);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;">#</div>`;
+                        opt.innerHTML = `${iconHtml}<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;">${name}</span>`;
+                        
+                        opt.onclick = () => {
+                            customText.innerHTML = opt.innerHTML;
+                            customOptions.style.display = 'none';
+                            currentServerName = name;
+                            onServerChange(id);
+                        };
+                        return opt;
+                    };
+                    
                     guilds.forEach(g => {
-                        const opt = document.createElement('option');
-                        opt.value = g.id; opt.textContent = g.name;
-                        select.appendChild(opt);
+                        customOptions.appendChild(createOpt(g.id, g.name, g.icon));
                     });
-                } catch(e) { select.innerHTML = `<option>API Error: ${e.message}</option>`; }
+                    
+                    customTrigger.onclick = () => {
+                        const isOpen = customOptions.style.display === 'block';
+                        if (!isOpen) {
+                            const rect = customTrigger.getBoundingClientRect();
+                            customOptions.style.top = (rect.bottom + 4) + 'px';
+                            customOptions.style.left = rect.left + 'px';
+                            customOptions.style.width = rect.width + 'px';
+                            customOptions.style.display = 'block';
+                        } else {
+                            customOptions.style.display = 'none';
+                        }
+                    };
+                    hasLoadedServers = true;
+                } catch(err) { customText.textContent = `API Error: ${err.message}`; }
             }
         };
 
-        btnClose.onclick = () => overlay.classList.remove('open');
-        overlay.onclick = (e) => { if (e.target === overlay) overlay.classList.remove('open'); };
+        btnClose.onclick = () => { overlay.classList.remove('open'); customOptions.style.display = 'none'; };
+        overlay.onclick = (e) => { 
+            if (e.target === overlay) { overlay.classList.remove('open'); customOptions.style.display = 'none'; }
+        };
+        
+        container.addEventListener('click', (e) => {
+            if (hasLoadedServers && !customTrigger.contains(e.target)) {
+                customOptions.style.display = 'none';
+            }
+        });
+        
+        shadow.querySelector('.modal-body').addEventListener('scroll', () => {
+            if (customOptions) customOptions.style.display = 'none';
+        });
 
         const updateCounts = () => {
             const emSel = emGrid.querySelectorAll('.selected').length;
@@ -318,7 +399,7 @@
                 div.dataset.id = item.id;
                 
                 const img = document.createElement('img');
-                img.src = type === 'emoji' ? getEmojiUrl(item.id, item.animated) : getStickerUrl(item.id);
+                img.src = type === 'emoji' ? getEmojiUrl(item.id, item.animated) : getStickerPreviewUrl(item.id);
                 img.title = item.name || "";
                 img.alt = item.name || "";
                 div.appendChild(img);
@@ -328,11 +409,13 @@
             });
         };
 
-        select.onchange = async () => {
-            const guildId = select.value;
+        const onServerChange = async (guildId) => {
             if(!guildId) { contentArea.style.display = 'none'; return; }
             contentArea.style.display = 'block';
-            select.disabled = true;
+            customTrigger.style.pointerEvents = 'none';
+            const originalHtml = customText.innerHTML;
+            customText.innerHTML = `<svg style="width:20px;height:20px;animation:spin 1s linear infinite;color:var(--blurple);flex-shrink:0;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="31.4 31.4" stroke-linecap="round"></circle></svg><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;">Loading items...</span>`;
+            
             try {
                 const data = await fetchApi(`/guilds/${guildId}`);
                 // Deduplicate names
@@ -348,8 +431,10 @@
                 renderItems(emGrid, currentEmojis, 'emoji');
                 renderItems(stGrid, currentStickers, 'sticker');
                 updateCounts();
-            } catch (e) { alert("Error loading emojis"); }
-            select.disabled = false;
+            } catch (e) { alert("Error loading emojis: " + e.message); }
+            
+            customText.innerHTML = originalHtml;
+            customTrigger.style.pointerEvents = 'auto';
         };
 
         const setAll = (grid, state) => {
@@ -363,7 +448,7 @@
 
         dlBtn.onclick = async () => {
             dlBtn.disabled = true;
-            dlBtn.textContent = "Downloading... Please wait";
+            dlBtn.textContent = "Preparing...";
             
             try {
                 const zip = new JSZip();
@@ -375,8 +460,18 @@
 
                 const failedItems = [];
                 let successCount = 0;
+                
+                const selectedEmojis = currentEmojis.filter(x => emSel.includes(x.id));
+                const selectedStickers = currentStickers.filter(x => stSel.includes(x.id));
+                const totalItems = selectedEmojis.length + selectedStickers.length;
+                let processed = 0;
 
-                const emPromises = currentEmojis.filter(x => emSel.includes(x.id)).map(async em => {
+                const updateDlProgress = () => {
+                    processed++;
+                    dlBtn.textContent = `Downloading ${processed}/${totalItems}`;
+                };
+
+                await mapLimit(selectedEmojis, 6, async (em) => {
                     try {
                         const buffer = await downloadImage(getEmojiUrl(em.id, em.animated));
                         const baseName = safeFilename(em.name, em.id);
@@ -386,30 +481,31 @@
                         failedItems.push({ name: em.name, id: em.id, error: e?.message || String(e) });
                         console.warn("[Discord Downloader] Failed to download emoji:", em, e);
                     }
+                    updateDlProgress();
                 });
                 
-                const stPromises = currentStickers.filter(x => stSel.includes(x.id)).map(async st => {
+                await mapLimit(selectedStickers, 6, async (st) => {
                     try {
-                        const buffer = await downloadImage(getStickerUrl(st.id));
+                        const asset = getStickerAsset(st);
+                        const buffer = await downloadImage(asset.url);
                         const baseName = safeFilename(st.name, st.id);
-                        stFolder.file(`${baseName}.png`, new Uint8Array(buffer));
+                        stFolder.file(`${baseName}.${asset.ext}`, new Uint8Array(buffer));
                         successCount++;
                     } catch(e) {
                         failedItems.push({ name: st.name, id: st.id, error: e?.message || String(e) });
                         console.warn("[Discord Downloader] Failed to download sticker:", st, e);
                     }
+                    updateDlProgress();
                 });
-
-                await Promise.all([...emPromises, ...stPromises]);
 
                 dlBtn.textContent = "Zipping...";
                 await new Promise(r => setTimeout(r, 50));
                 
-                const uint8 = zip.generate({type:"uint8array"});
-                const content = new Blob([uint8], { type: "application/zip" });
-                const serverName = safeFilename(select.options[select.selectedIndex].text);
+                const uint8 = zip.generate({ type: "uint8array", compression: "STORE" });
                 
-                const url = URL.createObjectURL(content);
+                const serverName = safeFilename(currentServerName);
+                const blob = new Blob([uint8], { type: "application/zip" });
+                const url = URL.createObjectURL(blob);
                 const a = document.createElement("a");
                 a.href = url; a.download = `${serverName}_Assets.zip`;
                 a.click(); URL.revokeObjectURL(url);
@@ -421,9 +517,9 @@
                 }
                 setTimeout(() => updateCounts(), 3000);
             } catch(e) {
-                alert("Download failed: " + e.message);
-                updateCounts();
+                alert("Error loading server data: " + e.message);
             }
+            customTrigger.style.pointerEvents = 'auto';
         };
     }
 

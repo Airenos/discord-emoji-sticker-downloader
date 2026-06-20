@@ -1,16 +1,18 @@
 // This script runs in the main world of the web page, allowing access to the original page's globals and webpack
-setTimeout(() => {
+window.addEventListener("message", (event) => {
+    // Strictly validate the origin to ensure the request came from our content script
+    if (event.source !== window || event.origin !== window.location.origin) return;
+    if (!event.data || event.data.type !== "DISCORD_TOKEN_REQUEST") return;
+
     const extractToken = () => {
         const cleanToken = (t) => t ? t.replace(/^"|"$/g, "") : null;
-
-        // Method 1: Try finding it via Webpack (more robust)
+        
+        // Method 1: Webpack (more robust)
         try {
             if (window.webpackChunkdiscord_app) {
                 let token = null;
                 window.webpackChunkdiscord_app.push([
-                    [Symbol()],
-                    {},
-                    (require) => {
+                    [Symbol()], {}, (require) => {
                         for (const key in require.c) {
                             const module = require.c[key].exports;
                             if (module) {
@@ -29,17 +31,13 @@ setTimeout(() => {
                 window.webpackChunkdiscord_app.pop(); // Clean up
                 if (token) return cleanToken(token);
             }
-        } catch (err) {
-            console.error("[Discord Downloader] Webpack extraction failed", err);
-        }
+        } catch (err) {}
 
-        // Method 2: Try localStorage fallback
+        // Method 2: LocalStorage fallback
         try {
             const token = localStorage.getItem("token");
             if (token) return cleanToken(token);
-        } catch (err) {
-            console.error("[Discord Downloader] LocalStorage extraction failed", err);
-        }
+        } catch (err) {}
 
         return null;
     };
@@ -47,6 +45,10 @@ setTimeout(() => {
     const token = extractToken();
     const result = token ? { token, success: true } : { error: "No token found", success: false };
     
-    // Send back to content.js
-    window.postMessage({ type: "DISCORD_TOKEN_RESULT", data: result }, "*");
-}, 1000); // Slight delay to ensure page and webpack are fully loaded
+    // Send back to content.js securely
+    window.postMessage({ 
+        type: "DISCORD_TOKEN_RESULT", 
+        requestId: event.data.requestId, 
+        data: result 
+    }, window.location.origin);
+});
