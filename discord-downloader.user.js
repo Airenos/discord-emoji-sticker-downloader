@@ -1,10 +1,14 @@
 // ==UserScript==
 // @name         Discord Emoji & Sticker Downloader
+// @name:en      Discord Emoji & Sticker Downloader
 // @name:zh-CN   Discord 表情与贴纸下载器
+// @name:ja      Discord 絵文字・スタンプダウンローダー
 // @namespace    https://github.com/
-// @version      1.1.0
+// @version      1.1.1
 // @description  Batch export custom Discord emojis and stickers from servers you can access. Uses your local Discord Web session to request metadata from Discord API.
+// @description:en  Batch export custom Discord emojis and stickers from servers you can access. Uses your local Discord Web session to request metadata from Discord API.
 // @description:zh-CN  批量导出当前账号可访问的 Discord 服务器自定义表情和贴纸；脚本会在本地使用当前 Discord Web 会话请求 Discord API。
+// @description:ja  参加しているDiscordサーバーからカスタム絵文字やスタンプを一括でダウンロード・保存します。
 // @author       Airenos (https://github.com/Airenos)
 // @license      MIT
 // @match        https://discord.com/*
