@@ -4,7 +4,7 @@
 // @name:zh-CN   Discord 表情与贴纸下载器
 // @name:ja      Discord 絵文字・スタンプダウンローダー
 // @namespace    https://github.com/
-// @version      1.1.1
+// @version      1.2.0
 // @description  Batch export custom Discord emojis and stickers from servers you can access. Uses your local Discord Web session to request metadata from Discord API.
 // @description:en  Batch export custom Discord emojis and stickers from servers you can access. Uses your local Discord Web session to request metadata from Discord API.
 // @description:zh-CN  批量导出当前账号可访问的 Discord 服务器自定义表情和贴纸；脚本会在本地使用当前 Discord Web 会话请求 Discord API。
@@ -141,9 +141,26 @@
         const host = document.createElement('div');
         host.id = 'discord-downloader-root';
         host.style.position = 'fixed';
-        host.style.bottom = '20px';
-        host.style.right = '20px';
         host.style.zIndex = '999999';
+
+        const savedPos = localStorage.getItem("discord_downloader_btn_pos");
+        if (savedPos) {
+            try {
+                const { left, top } = JSON.parse(savedPos);
+                const maxLeft = Math.max(0, window.innerWidth - 120);
+                const maxTop = Math.max(0, window.innerHeight - 50);
+                host.style.left = `${Math.min(Math.max(0, left), maxLeft)}px`;
+                host.style.top = `${Math.min(Math.max(0, top), maxTop)}px`;
+                host.style.right = 'auto';
+                host.style.bottom = 'auto';
+            } catch (e) {
+                host.style.bottom = '20px';
+                host.style.right = '20px';
+            }
+        } else {
+            host.style.bottom = '20px';
+            host.style.right = '20px';
+        }
         document.body.appendChild(host);
 
         const shadow = host.attachShadow({mode: 'open'});
@@ -207,6 +224,7 @@
             ::-webkit-scrollbar-track { background: var(--bg-tert); }
             ::-webkit-scrollbar-thumb { background: #1A1B1E; border-radius: 4px;}
             @keyframes spin { 100% { transform: rotate(360deg); } }
+            #asset-search-input:focus { border-color: var(--blurple) !important; }
         `;
         shadow.appendChild(style);
 
@@ -231,9 +249,17 @@
                             <div id="custom-select-options" style="position:fixed; max-height:250px; overflow-y:auto; background:var(--bg-sec); border:1px solid #1E1F22; border-radius:4px; display:none; z-index:999999; box-shadow:0 8px 16px rgba(0,0,0,0.5);"></div>
                         </div>
                         <div id="content-area" style="display: none;">
+                            <div style="margin-bottom: 12px;">
+                                <input type="text" id="asset-search-input" placeholder="🔍 Search emojis & stickers..." style="width: 100%; box-sizing: border-box; background: var(--bg-tert); border: 1px solid var(--bg-tert); color: var(--text); padding: 8px 12px; border-radius: 4px; outline: none; font-size: 13px; font-family: inherit; transition: border-color 0.2s;" />
+                            </div>
                             <div class="grid-title">
                                 <span>Emojis (<span id="emoji-count">0/0</span>)</span>
-                                <div class="grid-actions"><button id="em-all">All</button> <button id="em-none">None</button></div>
+                                <div class="grid-actions">
+                                    <button id="em-all">All</button>
+                                    <button id="em-none">None</button>
+                                    <button id="em-gif">GIF</button>
+                                    <button id="em-png">PNG</button>
+                                </div>
                             </div>
                             <div class="grid" id="emoji-grid"></div>
 
@@ -261,6 +287,7 @@
         const customOptions = shadow.querySelector('#custom-select-options');
         let currentServerName = "Discord_Server";
         const contentArea = shadow.querySelector('#content-area');
+        const searchInput = shadow.querySelector('#asset-search-input');
         const emGrid = shadow.querySelector('#emoji-grid');
         const stGrid = shadow.querySelector('#sticker-grid');
         const dlBtn = shadow.querySelector('#dl-btn');
@@ -297,6 +324,13 @@
             const onMouseUp = () => {
                 document.removeEventListener('mousemove', onMouseMove);
                 document.removeEventListener('mouseup', onMouseUp);
+                if (isDragging) {
+                    const finalRect = host.getBoundingClientRect();
+                    localStorage.setItem("discord_downloader_btn_pos", JSON.stringify({
+                        left: Math.round(finalRect.left),
+                        top: Math.round(finalRect.top)
+                    }));
+                }
             };
             document.addEventListener('mousemove', onMouseMove);
             document.addEventListener('mouseup', onMouseUp);
@@ -398,6 +432,8 @@
                 const div = document.createElement('div');
                 div.className = 'grid-item selected';
                 div.dataset.id = item.id;
+                div.dataset.name = (item.name || "").toLowerCase();
+                div.dataset.animated = item.animated ? "true" : "false";
                 
                 const img = document.createElement('img');
                 img.src = type === 'emoji' ? getEmojiUrl(item.id, item.animated) : getStickerPreviewUrl(item.id);
@@ -413,6 +449,7 @@
         const onServerChange = async (guildId) => {
             if(!guildId) { contentArea.style.display = 'none'; return; }
             contentArea.style.display = 'block';
+            if (searchInput) searchInput.value = '';
             customTrigger.style.pointerEvents = 'none';
             const originalHtml = customText.innerHTML;
             customText.innerHTML = `<svg style="width:20px;height:20px;animation:spin 1s linear infinite;color:var(--blurple);flex-shrink:0;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="31.4 31.4" stroke-linecap="round"></circle></svg><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;">Loading items...</span>`;
@@ -439,13 +476,50 @@
         };
 
         const setAll = (grid, state) => {
-            grid.querySelectorAll('.grid-item').forEach(el => el.classList.toggle('selected', state));
+            grid.querySelectorAll('.grid-item').forEach(el => {
+                if (el.style.display !== 'none') {
+                    el.classList.toggle('selected', state);
+                }
+            });
             updateCounts();
         };
+
+        if (searchInput) {
+            searchInput.addEventListener('input', () => {
+                const query = searchInput.value.trim().toLowerCase();
+                const filterGrid = (grid) => {
+                    grid.querySelectorAll('.grid-item').forEach(el => {
+                        const match = !query || (el.dataset.name && el.dataset.name.includes(query));
+                        el.style.display = match ? 'flex' : 'none';
+                    });
+                };
+                filterGrid(emGrid);
+                filterGrid(stGrid);
+            });
+        }
+
         shadow.querySelector('#em-all').onclick = () => setAll(emGrid, true);
         shadow.querySelector('#em-none').onclick = () => setAll(emGrid, false);
         shadow.querySelector('#st-all').onclick = () => setAll(stGrid, true);
         shadow.querySelector('#st-none').onclick = () => setAll(stGrid, false);
+
+        shadow.querySelector('#em-gif').onclick = () => {
+            emGrid.querySelectorAll('.grid-item').forEach(el => {
+                if (el.style.display !== 'none') {
+                    el.classList.toggle('selected', el.dataset.animated === 'true');
+                }
+            });
+            updateCounts();
+        };
+
+        shadow.querySelector('#em-png').onclick = () => {
+            emGrid.querySelectorAll('.grid-item').forEach(el => {
+                if (el.style.display !== 'none') {
+                    el.classList.toggle('selected', el.dataset.animated !== 'true');
+                }
+            });
+            updateCounts();
+        };
 
         dlBtn.onclick = async () => {
             dlBtn.disabled = true;

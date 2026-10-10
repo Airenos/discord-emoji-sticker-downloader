@@ -8,9 +8,11 @@ A local-first, lightweight userscript to batch export and download custom emojis
 
 - 🎨 **Batch Export Emojis** — Download all custom static (PNG) and animated (GIF) emojis at once.
 - 🎟️ **Batch Export Stickers** — Export stickers (PNG, APNG, GIF, and Lottie JSON) with correct file extensions.
+- 🔍 **Instant Name Search** — Filter emojis and stickers by name in real-time, with smart batch-selection for search results.
+- ⚡ **Animated / Static Filters** — One-click filter buttons to select "GIF Only" or "PNG Only".
 - 🖼️ **Rich Server Selector** — Custom skeuomorphic dropdown displaying server icons and live loading spinners.
 - 📦 **Fast ZIP Packaging** — Directly packages assets with zero CPU freezing.
-- 🖐️ **Draggable Floating Button** — The "📥 Emojis" button in the bottom right corner can be dragged anywhere to prevent blocking Discord UI elements.
+- 🖐️ **Draggable with Position Memory** — The floating button can be moved freely and automatically remembers its position across page reloads.
 - 🌐 **Safe Filename Handling** — Full Unicode support for server names containing Chinese, Japanese, Korean, or special characters.
 - 🔓 **100% Free & Open Source** — No paywalls, no third-party telemetry, runs entirely in your browser.
 

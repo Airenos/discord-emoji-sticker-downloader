@@ -26,9 +26,12 @@
 ### ✨ Features
 - 🎨 **Batch Export Emojis** — Export custom emojis from servers you have access to.
 - 🎟️ **Batch Export Stickers** — Export stickers from your accessible servers.
+- 🔍 **Instant Name Search** — Filter emojis & stickers in real-time, with smart batch-selection.
+- ⚡ **GIF / PNG Filters** — One-click filter to select only animated or static emojis.
 - ✅ **Custom Selection** — Select exactly what you want to export.
 - 🖼️ **Rich UI** — Skeuomorphic dropdown select UI featuring Discord server icons.
 - 📦 **ZIP Export** — Automatically packages your exports into a structured `.zip` file with loading spinners.
+- 🖐️ **Draggable with Position Memory** — Floating button can be moved freely and remembers its position across reloads.
 - 🔓 **Source-Available** — No project-side artificial paywalls.
 - 🛠️ **Two Versions Available** — Choose between a Browser Extension or a Userscript.
 
@@ -68,9 +71,12 @@ This project is licensed under the [MIT License](LICENSE).
 ### ✨ 功能特性
 - 🎨 **批量导出表情** — 批量导出当前账号可访问服务器中的自定义表情。
 - 🎟️ **批量导出贴纸** — 批量导出当前账号可访问服务器中的贴纸。
+- 🔍 **即时名称搜索** — 实时按关键词过滤表情和贴纸，并支持智能批量选择。
+- ⚡ **动静分离筛选** — 一键挑选“仅动图 (GIF)”或“仅静态 (PNG)”，告别手动勾选。
 - ✅ **自定义选择** — 支持全选、反选或精准挑选你要导出的项目。
 - 🖼️ **原生拟物 UI** — 深度定制的下拉框组件，完美支持显示服务器高清图标与动态加载指示器。
 - 📦 **ZIP 打包导出** — 自动整理并打包成 `.zip` 文件极速下载到本地，全程无阻塞。
+- 🖐️ **防遮挡与位置记忆** — 下载按钮可自由拖拽，自动记忆屏幕位置，刷新页面不复位。
 - 🔓 **开源透明** — 无内置项目方强制收费墙。
 - 🛠️ **双版本支持** — 提供浏览器扩展和油猴脚本两种选择。
 
